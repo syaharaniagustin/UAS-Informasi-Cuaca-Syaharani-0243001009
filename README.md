@@ -36,3 +36,13 @@ npm run dev
 ```sh
 npm run build
 ```
+## Environment Variables
+
+Proyek ini membutuhkan API Key dari OpenWeatherMap agar fitur cuaca dapat berfungsi.
+
+1. Buat file bernama `.env` di folder utama proyek (root).
+2. Tambahkan baris berikut di dalam file `.env`:
+   ```env
+   VITE_WEATHER_API_KEY=MASUKKAN_API_KEY_ANDA_DISINI
+
+3. Anda dapat mendapatkan API Key gratis dengan mendaftar di OpenWeatherMap.

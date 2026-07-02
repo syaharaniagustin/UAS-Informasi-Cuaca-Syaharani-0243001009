@@ -1,0 +1,21 @@
+###REGISTER USER
+POST http://localhost:3001/api/auth/register
+Content-Type: application/json
+
+{
+    "username": "rani",
+    "email": "rani@example.com",
+    "password": "password123",
+    "confirmPassword": "password123"
+}
+
+
+
+### LOGIN USER
+POST http://localhost:3001/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "rani",
+    "password": "password123"
+}
