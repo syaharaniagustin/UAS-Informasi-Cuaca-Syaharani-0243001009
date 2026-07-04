@@ -1,122 +1,41 @@
 <template>
   <div class="dashboard">
     <div class="weather-box">
-      <!-- Header Branding -->
-      <div class="brand">
-        <span class="logo">🌤️</span>
-        <h2>Glaze Weather</h2>
-      </div>
+      <div class="brand">🌤️ <h2>Glaze Weather</h2></div>
       <p>Hello, {{ authStore.username }}</p>
 
-      <!-- Search Bar -->
-      <div class="search-box">
-        <input v-model="city" @keyup.enter="handleSearch" placeholder="Cari kota..." />
-        <button @click="handleSearch">Cari</button>
-      </div>
-
-      <!-- Jam Saat Ini -->
-      <div class="current-time">
-        <p>{{ currentTime }}</p>
-      </div>
-
-      <!-- Cuaca Utama -->
-      <div v-if="weather" class="weather-result">
-        <h3>{{ weather.name }}, {{ weather.sys.country }}</h3>
-        <p class="temp">{{ Math.round(weather.main.temp) }}°C</p>
-        <img :src="`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`" />
-        <p class="desc">{{ weather.weather[0].description }}</p>
-
-        <!-- Detail Cuaca -->
-        <div class="extra-info">
-          <div class="info-item">
-            <p class="value">{{ weather.main.humidity }}%</p>
-            <p class="label">Humidity</p>
-          </div>
-          <div class="info-item">
-            <p class="value">{{ weather.wind.speed }} m/s</p>
-            <p class="label">Wind</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Prakiraan Cuaca -->
-      <div class="forecast-container" v-if="forecast.length > 0">
-        <p>Prakiraan per 3 jam:</p>
-        <div class="forecast-list">
-          <div v-for="(item, index) in forecast" :key="index" class="forecast-item">
-            <span>{{ item.dt_txt.slice(11, 13) }}:00</span>
-            <img :src="`https://openweathermap.org/img/wn/${item.weather[0].icon}.png`" width="30" />
-            <span>{{ Math.round(item.main.temp) }}°C</span>
-          </div>
-        </div>
-      </div>
-
+      <SearchBar @search="handleSearch" />
+      <div class="current-time"><p>{{ currentTime }}</p></div>
+      <WeatherDisplay :weather="weather" />
+      <ForecastList :forecast="forecast" />
+      
       <button class="logout-button" @click="handleLogout">Logout</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import { useWeather } from '../composables/useWeather'; // Import composable-nya
+import SearchBar from '../components/SearchBar.vue';
+import WeatherDisplay from '../components/WeatherDisplay.vue';
+import ForecastList from '../components/ForecastList.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
-
-const city = ref('Bogor');
-const weather = ref(null);
-const forecast = ref([]);
+const { weather, forecast, fetchData } = useWeather(); // Gunakan composable
 const currentTime = ref('');
-const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
 
-const getWeatherData = async () => {
-  if (!city.value) return;
-  try {
-    const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=${city.value}&units=metric&appid=${apiKey}`
-    );
-    if (!response.ok) throw new Error('Kota tidak ditemukan');
-    weather.value = await response.json();
-  } catch (error) {
-    console.error(error.message);
-  }
-};
-
-const getForecastData = async () => {
-  try {
-    const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/forecast?q=${city.value}&units=metric&appid=${apiKey}`
-    );
-    const data = await response.json();
-    forecast.value = data.list.slice(0, 3);
-  } catch (error) {
-    console.error("Gagal memuat forecast");
-  }
-};
-
-const handleSearch = () => {
-  getWeatherData();
-  getForecastData();
-};
-
-const updateTime = () => {
-  currentTime.value = new Date().toLocaleTimeString('id-ID', {
-    hour: '2-digit', minute: '2-digit', second: '2-digit'
-  });
-};
+const updateTime = () => currentTime.value = new Date().toLocaleTimeString('id-ID');
 
 onMounted(() => {
-  getWeatherData();
-  getForecastData();
-  updateTime();
+  fetchData('Bogor'); // Data awal
   setInterval(updateTime, 1000);
 });
 
-const handleLogout = () => {
-  authStore.logout();
-  router.push('/login');
-};
+const handleLogout = () => { authStore.logout(); router.push('/login'); };
 </script>
 
 <style scoped>
@@ -128,7 +47,7 @@ const handleLogout = () => {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  color: #333; /* Teks diubah jadi gelap agar kontras dengan background cerah */
+  color: #333; 
   font-family: 'Segoe UI', sans-serif;
 }
 
